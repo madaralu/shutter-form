@@ -63,8 +63,8 @@ const CFG = {
   options: {
     // ----- نوع الشريحة -----
     slat: [
-      "شريحة 4 سم - اورنج",
-      "شريحة 5.5 سم - اورنج",
+      "شريحة 4 سم - أورنج",
+      "شريحة 5.5 سم - أورنج",
       "شريحة 5.5 سم أورنج- هارد فوم",
       "شريحة 4.6 سم",
       "شريحة 5.5 سم",
@@ -95,7 +95,7 @@ const CFG = {
       "محرك جابوسا - إيطالي",
       "محرك روزا  - إيطالي",
       "محرك انجوي - أسباني",
-      "محرك اورنج - صيني",
+      "محرك أورنج - صيني",
       "طقم شريط"
     ],
 
@@ -109,7 +109,17 @@ const CFG = {
       "ريموت ELVA + مفتاح شنايدر"
     ]
   },
-  colors: ["رمادى"]
+  // ----- اللون -----
+  colors: [
+    "بيج 132",
+    "أبيض 130",
+    "رمادي غامق 127",
+    "أسود 131",
+    "بني محروق 115",
+    "لون خاص",
+    "خشبي",
+    "فضي 103"
+  ]
 };
 document.title = CFG.title;
 document.getElementById('formTitle').textContent = CFG.title;
@@ -121,7 +131,7 @@ function makeRow(n,record={}){
  card.innerHTML=`<div class="rowhead"><h2>شيش رقم ${n}</h2>${n>1?'<button type="button" class="danger remove">حذف</button>':''}</div>
  <div class="fields">
  <div><label>نوع الشريحة</label><select data-key="slat">${selectOptions(CFG.options.slat,'اختر نوع الشريحة')}</select></div>
- <div><label>اللون</label><input data-key="color" placeholder="اكتب اللون"></div>
+ <div><label>اللون</label><select data-key="color">${selectOptions(CFG.colors,'اختر اللون')}</select><input data-key="colorCustom" placeholder="اكتب اللون المطلوب" style="margin-top:8px" hidden></div>
  <div><label>العرض (سم)</label><input data-key="width" type="number" min="0" step="any" inputmode="decimal" placeholder="العرض"></div>
  <div><label>الارتفاع (سم)</label><input data-key="height" type="number" min="0" step="any" inputmode="decimal" placeholder="الارتفاع"></div>
  <div><label>العدد</label><input data-key="qty" type="number" min="1" step="1" inputmode="numeric" value="1"></div>
@@ -131,19 +141,23 @@ function makeRow(n,record={}){
  <div class="notes"><label>ملاحظات</label><input data-key="notes" placeholder="ملاحظات إضافية (اختياري)"></div>
  </div>`;
  for(const [key,value] of Object.entries(record)){const el=card.querySelector(`[data-key="${key}"]`);if(el)el.value=value??''}
+ toggleCustomColor(card);
  card.querySelector('.remove')?.addEventListener('click',()=>{card.remove();renumber()});
  return card;
 }
 
+const CUSTOM_COLOR='لون خاص';
+function toggleCustomColor(card){const sel=card.querySelector('[data-key="color"]'),box=card.querySelector('[data-key="colorCustom"]');const on=sel.value===CUSTOM_COLOR;box.hidden=!on;if(!on)box.value=''}
 function renumber(){[...rowsRoot.children].forEach((c,i)=>{c.querySelector('h2').textContent=`شيش رقم ${i+1}`;const b=c.querySelector('.remove');if(b)b.style.display=rowsRoot.children.length===1?'none':''});document.getElementById('count').textContent=rowsRoot.children.length;document.getElementById('add').disabled=rowsRoot.children.length>=MAX}
 function addRow(record){if(rowsRoot.children.length>=MAX)return;rowsRoot.appendChild(makeRow(rowsRoot.children.length+1,record));renumber()}
 addRow();
+rowsRoot.addEventListener('change',e=>{if(e.target.matches('[data-key="color"]'))toggleCustomColor(e.target.closest('[data-row]'))});
 document.getElementById('add').addEventListener('click',()=>addRow());
 function val(card,key){return card.querySelector(`[data-key="${key}"]`)?.value?.trim()||''}
 function getRecords(){
  const cards=[...rowsRoot.children],out=[];
  for(let i=0;i<cards.length;i++){
-  const c=cards[i],r={slat:val(c,'slat'),color:val(c,'color'),width:val(c,'width'),height:val(c,'height'),qty:val(c,'qty'),installation:val(c,'installation'),movement:val(c,'movement'),operation:val(c,'operation'),notes:val(c,'notes')};
+  const c=cards[i],r={slat:val(c,'slat'),color:(val(c,'color')===CUSTOM_COLOR&&val(c,'colorCustom'))?`${CUSTOM_COLOR} - ${val(c,'colorCustom')}`:val(c,'color'),width:val(c,'width'),height:val(c,'height'),qty:val(c,'qty'),installation:val(c,'installation'),movement:val(c,'movement'),operation:val(c,'operation'),notes:val(c,'notes')};
   if(![r.slat,r.color,r.width,r.height,r.installation,r.movement,r.operation,r.notes].some(v=>v!==''))continue;
   if(!r.slat){throw new Error(`يرجى اختيار نوع الشريحة في الصف ${i+1}`)}
   if(!r.width||!r.height||Number(r.width)<=0||Number(r.height)<=0){throw new Error(`يرجى إدخال عرض وارتفاع صحيحين في الصف ${i+1}`)}
