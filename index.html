@@ -20,6 +20,10 @@ button{font:inherit;border:0;border-radius:10px;padding:12px 16px;cursor:pointer
 .primary{background:var(--brand-orange);color:#171717}.secondary{background:#e8eef7;color:#17314f}.danger{background:#fff0f0;color:#a12525}
 small,.hint{font-size:12px;color:#637087}.count{font-weight:700;color:#c96c00}
 .walink{display:inline-block;margin-top:10px;background:#25d366;color:#fff;font-weight:700;text-decoration:none;border-radius:10px;padding:12px 16px}.walink[hidden]{display:none}
+.cs{position:relative}.cs-btn{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px;border:1px solid #cbd3df;border-radius:9px;background:#fff;color:inherit;font:inherit;font-weight:400;text-align:start;cursor:pointer}.cs-label{display:flex;gap:6px;align-items:center;min-width:0}.cs-arrow{color:#637087;font-size:12px}
+.cs-list{position:absolute;z-index:30;inset-inline-start:0;top:calc(100% + 4px);min-width:max(100%,270px);max-height:55vh;overflow:auto;background:#fff;border:1px solid #cbd3df;border-radius:10px;box-shadow:0 8px 24px rgba(23,32,51,.18)}.cs-list[hidden]{display:none}
+.cs-item{padding:12px;cursor:pointer;display:flex;gap:8px;align-items:center;background:#fff}.cs-item:hover,.cs-item:active{background:#f4f6fa}.cs-sep{height:3px;background:#5b6578;margin:6px 0}.dash{font-size:22px;line-height:1;font-weight:900}
+.invalid{border-color:#d93025!important;background:#fff4f3!important}.req{color:#d93025;margin-inline-start:3px}
 footer{padding:8px 2px 22px;color:#5b6578;font-size:12px}
 @media(min-width:760px){.fields{grid-template-columns:repeat(5,minmax(0,1fr))}.fields .wide{grid-column:span 2}.fields .notes{grid-column:span 2}.fields .span2{grid-column:span 2}}
 @media(max-width:420px){body{padding:9px}.topgrid{grid-template-columns:1fr}.panel,.rowcard,header{padding:12px}.fields{gap:10px}}
@@ -39,7 +43,7 @@ footer{padding:8px 2px 22px;color:#5b6578;font-size:12px}
 <button class="secondary" id="export" type="button">تحميل</button>
 <button class="primary" id="share" type="button">مشاركة عبر الواتساب</button>
 </div>
-<p class="hint">يمكن إدخال حتى 50 صفًا. املأ العرض والارتفاع بالسنتيمتر، وأدخل العدد المطلوب.</p>
+<p class="hint">يمكن إدخال حتى 50 صفًا. املأ العرض والارتفاع بالسنتيمتر، وأدخل العدد المطلوب. جميع الحقول مطلوبة (*) ما عدا الملاحظات.</p>
 <div id="status" role="status" aria-live="polite"></div>
 <a id="openWa" class="walink" href="#" target="_blank" rel="noopener" hidden>فتح واتساب</a>
 </section>
@@ -62,40 +66,57 @@ const CFG = {
 
   options: {
     // ----- نوع الشريحة -----
+    // كل مجموعة بين [ ] لها لون شرطة خاص بها وخط فاصل بعدها
+    // لون الشرطة لكل مجموعة يتم اختياره من slatColors بنفس الترتيب
     slat: [
-      "شريحة 4 سم - أورنج",
-      "شريحة 5.5 سم - أورنج",
-      "شريحة 5.5 سم أورنج- هارد فوم",
-      "شريحة 4.6 سم",
-      "شريحة 5.5 سم",
-      "شريحة 5.8 سم",
-      "شريحة 5.8 سم - هارد فوم",
-      "زنكاليوم 4 سم",
-      "زنكاليوم 5.5 سم",
-      "حماية 4.5 - سد",
-      "حماية نور وهواء",
-      "حماية 5.5 سم",
-      "باب حماية 7.7 سم - سد",
-      "باب حماية 10 سم - سد",
-      "باب حماية 10 سم - مثقب"
+      [
+        "40 مم - أورانج",
+        "55 مم - أورانج",
+        "55 مم أورانج- هارد فوم"
+      ],
+      [
+        "46 مم - مدار",
+        "55 مم - مدار",
+        "58 مم - مدار",
+        "58 مم - مدار - هارد فوم"
+      ],
+      [
+        "زنكاليوم 40 مم",
+        "زنكاليوم 55 مم"
+      ],
+      [
+        "حماية 45 مم - سد",
+        "حماية نور وهواء",
+        "حماية 55 مم"
+      ],
+      [
+        "باب حماية 77 مم - سد",
+        "باب حماية 100 مم - سد",
+        "باب حماية 100 مم - مثقب"
+      ]
     ],
+    // لون الشرطة (-) الظاهرة قبل كل خيار، لكل مجموعة بنفس الترتيب
+    slatColors: ["#F28C28", "#1F6FD0", "#1E9E55", "#7B3FC4", "#8B5A2B"],
 
     // ----- طريقة التركيب -----
     installation: [
-      "داخل الفتحة",
-      "خارج الفتحة",
-      "حصيرة فقط - مقاس قص",
-      "حصيرة فقط - شاملة مقاس الحبسات"
+      "1- داخل الفتحة",
+      "2- خارج الفتحة",
+      "3- حصيرة فقط - مقاس قص",
+      "4- حصيرة فقط - شاملة مقاس الحبسات"
     ],
 
     // ----- طريقة التحريك -----
+    movementHeading: "محرك",     // كلمة تظهر مرة واحدة فوق المحركات
     movement: [
-      "محرك بيكر - ألماني",
-      "محرك سومفي - فرنساوي",
-      "محرك جابوسا - إيطالي",
-      "محرك روزا  - إيطالي",
-      "محرك انجوي - أسباني",
-      "محرك أورنج - صيني",
+      "بيكر - ألماني",
+      "سومفي - فرنسي",
+      "جابوسا - إيطالي",
+      "روزا - إيطالي",
+      "انجوي - أسباني",
+      "أورنج - صيني"
+    ],
+    movementOther: [             // تظهر بعد سطر فاصل
       "طقم شريط"
     ],
 
@@ -107,6 +128,11 @@ const CFG = {
       "ريموت",
       "ريموت + مفتاح وايرلس",
       "ريموت ELVA + مفتاح شنايدر"
+    ],
+    // خيارات تظهر فقط عند اختيار محرك معين (whenMovement = كلمة موجودة في اسم المحرك)
+    operationExtra: [
+      { label: "Connection", whenMovement: "سومفي" },
+      { label: "CC41", whenMovement: "بيكر" }
     ]
   },
   // ----- اللون -----
@@ -126,22 +152,42 @@ document.getElementById('formTitle').textContent = CFG.title;
 const MAX=50, rowsRoot=document.getElementById('rows');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function selectOptions(vals,placeholder){return `<option value="">${esc(placeholder)}</option>`+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+const SLAT_PLACEHOLDER='اختر نوع الشريحة';
+function slatWidget(){
+ const G=CFG.options.slat,C=CFG.options.slatColors;let items='';
+ G.forEach((g,gi)=>{const col=C[gi%C.length];
+  g.forEach(v=>{items+=`<div class="cs-item" role="option" data-v="${esc(v)}"><b class="dash" style="color:${col}">-</b><span>${esc(v)}</span></div>`});
+  if(gi<G.length-1)items+='<div class="cs-sep"></div>';
+ });
+ return `<div class="cs"><input type="hidden" data-key="slat"><button type="button" class="cs-btn"><span class="cs-label">${SLAT_PLACEHOLDER}</span><span class="cs-arrow">▼</span></button><div class="cs-list" role="listbox" hidden>${items}</div></div>`}
+function syncSlat(card){const cs=card.querySelector('.cs'),v=cs.querySelector('[data-key="slat"]').value,label=cs.querySelector('.cs-label');label.textContent=SLAT_PLACEHOLDER;
+ if(v)for(const it of cs.querySelectorAll('.cs-item'))if(it.dataset.v===v){label.innerHTML=it.innerHTML;break}}
+function closeSlatLists(){document.querySelectorAll('.cs-list').forEach(l=>l.hidden=true)}
+function movementOptions(){
+ const O=CFG.options;
+ return '<option value="">اختر طريقة التحريك</option>'+`<optgroup label="${esc(O.movementHeading)}">`+O.movement.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')+'</optgroup>'+'<option disabled>\u00a0</option>'+O.movementOther.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+function operationOptions(mv){
+ const O=CFG.options,list=[...O.operation,...O.operationExtra.filter(e=>mv&&mv.includes(e.whenMovement)).map(e=>e.label)];
+ return selectOptions(list,'اختر طريقة التشغيل')}
+function refreshOperation(card){const sel=card.querySelector('[data-key="operation"]'),cur=sel.value;sel.innerHTML=operationOptions(val(card,'movement'));sel.value=cur;if(sel.value!==cur)sel.value=''}
 function makeRow(n,record={}){
  const card=document.createElement('div');card.className='rowcard';card.dataset.row='';
  card.innerHTML=`<div class="rowhead"><h2>شيش رقم ${n}</h2>${n>1?'<button type="button" class="danger remove">حذف</button>':''}</div>
  <div class="fields">
- <div><label>نوع الشريحة</label><select data-key="slat">${selectOptions(CFG.options.slat,'اختر نوع الشريحة')}</select></div>
- <div><label>اللون</label><select data-key="color">${selectOptions(CFG.colors,'اختر اللون')}</select><input data-key="colorCustom" placeholder="اكتب اللون المطلوب" style="margin-top:8px" hidden></div>
- <div><label>العرض (سم)</label><input data-key="width" type="number" min="0" step="any" inputmode="decimal" placeholder="العرض"></div>
- <div><label>الارتفاع (سم)</label><input data-key="height" type="number" min="0" step="any" inputmode="decimal" placeholder="الارتفاع"></div>
- <div><label>العدد</label><input data-key="qty" type="number" min="1" step="1" inputmode="numeric" value="1"></div>
- <div class="wide"><label>طريقة التركيب</label><select data-key="installation">${selectOptions(CFG.options.installation,'اختر طريقة التركيب')}</select></div>
- <div class="wide"><label>طريقة التحريك</label><select data-key="movement">${selectOptions(CFG.options.movement,'اختر طريقة التحريك')}</select></div>
- <div class="wide"><label>طريقة التشغيل</label><select data-key="operation">${selectOptions(CFG.options.operation,'اختر طريقة التشغيل')}</select></div>
+ <div><label>نوع الشريحة<span class="req">*</span></label>${slatWidget()}</div>
+ <div><label>اللون<span class="req">*</span></label><select data-key="color">${selectOptions(CFG.colors,'اختر اللون')}</select><input data-key="colorCustom" placeholder="اكتب اللون المطلوب" style="margin-top:8px" hidden></div>
+ <div><label>العرض (سم)<span class="req">*</span></label><input data-key="width" type="number" min="0" step="any" inputmode="decimal" placeholder="العرض"></div>
+ <div><label>الارتفاع (سم)<span class="req">*</span></label><input data-key="height" type="number" min="0" step="any" inputmode="decimal" placeholder="الارتفاع"></div>
+ <div><label>العدد<span class="req">*</span></label><input data-key="qty" type="number" min="1" step="1" inputmode="numeric" value="1"></div>
+ <div class="wide"><label>طريقة التركيب<span class="req">*</span></label><select data-key="installation">${selectOptions(CFG.options.installation,'اختر طريقة التركيب')}</select></div>
+ <div class="wide"><label>طريقة التحريك<span class="req">*</span></label><select data-key="movement">${movementOptions()}</select></div>
+ <div class="wide"><label>طريقة التشغيل<span class="req">*</span></label><select data-key="operation">${operationOptions('')}</select></div>
  <div class="notes"><label>ملاحظات</label><input data-key="notes" placeholder="ملاحظات إضافية (اختياري)"></div>
  </div>`;
- for(const [key,value] of Object.entries(record)){const el=card.querySelector(`[data-key="${key}"]`);if(el)el.value=value??''}
- toggleCustomColor(card);
+ const setv=(k,v)=>{const el=card.querySelector(`[data-key="${k}"]`);if(el)el.value=v??''};
+ for(const [key,value] of Object.entries(record)){if(key!=='operation')setv(key,value)}
+ refreshOperation(card);if(record.operation)setv('operation',record.operation);
+ toggleCustomColor(card);syncSlat(card);
  card.querySelector('.remove')?.addEventListener('click',()=>{card.remove();renumber()});
  return card;
 }
@@ -151,20 +197,29 @@ function toggleCustomColor(card){const sel=card.querySelector('[data-key="color"
 function renumber(){[...rowsRoot.children].forEach((c,i)=>{c.querySelector('h2').textContent=`شيش رقم ${i+1}`;const b=c.querySelector('.remove');if(b)b.style.display=rowsRoot.children.length===1?'none':''});document.getElementById('count').textContent=rowsRoot.children.length;document.getElementById('add').disabled=rowsRoot.children.length>=MAX}
 function addRow(record){if(rowsRoot.children.length>=MAX)return;rowsRoot.appendChild(makeRow(rowsRoot.children.length+1,record));renumber()}
 addRow();
-rowsRoot.addEventListener('change',e=>{if(e.target.matches('[data-key="color"]'))toggleCustomColor(e.target.closest('[data-row]'))});
+rowsRoot.addEventListener('change',e=>{const t=e.target,card=t.closest('[data-row]');if(t.matches('[data-key="color"]'))toggleCustomColor(card);if(t.matches('[data-key="movement"]'))refreshOperation(card);if(t.matches('[data-key="slat"]'))card.querySelector('.cs-btn').classList.remove('invalid')});
+rowsRoot.addEventListener('click',e=>{const btn=e.target.closest('.cs-btn'),item=e.target.closest('.cs-item');
+ if(btn){const list=btn.parentElement.querySelector('.cs-list'),wasHidden=list.hidden;closeSlatLists();list.hidden=!wasHidden;return}
+ if(item){const cs=item.closest('.cs'),h=cs.querySelector('[data-key="slat"]');h.value=item.dataset.v;syncSlat(cs.closest('[data-row]'));closeSlatLists();h.dispatchEvent(new Event('change',{bubbles:true}))}});
+document.addEventListener('click',e=>{if(!e.target.closest('.cs'))closeSlatLists()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSlatLists()});
+rowsRoot.addEventListener('input',e=>e.target.classList.remove('invalid'));rowsRoot.addEventListener('change',e=>e.target.classList.remove('invalid'));
 document.getElementById('add').addEventListener('click',()=>addRow());
 function val(card,key){return card.querySelector(`[data-key="${key}"]`)?.value?.trim()||''}
 function getRecords(){
- const cards=[...rowsRoot.children],out=[];
- for(let i=0;i<cards.length;i++){
-  const c=cards[i],r={slat:val(c,'slat'),color:(val(c,'color')===CUSTOM_COLOR&&val(c,'colorCustom'))?`${CUSTOM_COLOR} - ${val(c,'colorCustom')}`:val(c,'color'),width:val(c,'width'),height:val(c,'height'),qty:val(c,'qty'),installation:val(c,'installation'),movement:val(c,'movement'),operation:val(c,'operation'),notes:val(c,'notes')};
-  if(![r.slat,r.color,r.width,r.height,r.installation,r.movement,r.operation,r.notes].some(v=>v!==''))continue;
-  if(!r.slat){throw new Error(`يرجى اختيار نوع الشريحة في الصف ${i+1}`)}
-  if(!r.width||!r.height||Number(r.width)<=0||Number(r.height)<=0){throw new Error(`يرجى إدخال عرض وارتفاع صحيحين في الصف ${i+1}`)}
-  if(!r.qty||!Number.isInteger(Number(r.qty))||Number(r.qty)<1){throw new Error(`يرجى إدخال عدد صحيح في الصف ${i+1}`)}
-  out.push(r);
- }
- if(!out.length)throw new Error('أدخل بيانات شيش واحد على الأقل.');
+ const cards=[...rowsRoot.children],out=[];let bad=0,first=null,firstMsg='';
+ const FIELDS=[['slat','نوع الشريحة'],['color','اللون'],['width','العرض'],['height','الارتفاع'],['qty','العدد'],['installation','طريقة التركيب'],['movement','طريقة التحريك'],['operation','طريقة التشغيل']];
+ rowsRoot.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+ cards.forEach((c,i)=>{
+  const miss=[];
+  FIELDS.forEach(([k,label])=>{const v=val(c,k);let ok=v!=='';
+   if(k==='width'||k==='height')ok=ok&&Number(v)>0;
+   if(k==='qty')ok=ok&&Number.isInteger(Number(v))&&Number(v)>=1;
+   if(!ok)miss.push([k==='slat'?c.querySelector('.cs-btn'):c.querySelector(`[data-key="${k}"]`),label])});
+  if(val(c,'color')===CUSTOM_COLOR&&!val(c,'colorCustom'))miss.push([c.querySelector('[data-key="colorCustom"]'),'اللون المطلوب']);
+  miss.forEach(([el,label])=>{el.classList.add('invalid');bad++;if(!first){first=el;firstMsg=`${label} في شيش رقم ${i+1}`}});
+  out.push({slat:val(c,'slat'),color:(val(c,'color')===CUSTOM_COLOR&&val(c,'colorCustom'))?`${CUSTOM_COLOR} - ${val(c,'colorCustom')}`:val(c,'color'),width:val(c,'width'),height:val(c,'height'),qty:val(c,'qty'),installation:val(c,'installation'),movement:val(c,'movement'),operation:val(c,'operation'),notes:val(c,'notes')});
+ });
+ if(bad){first.scrollIntoView({behavior:'smooth',block:'center'});if(first.focus)first.focus();throw new Error(`يرجى استكمال جميع الحقول المطلوبة (${bad} ناقص). أول حقل ناقص: ${firstMsg}. إذا كان هناك شيش فارغ لا تحتاجه اضغط حذف.`)}
  return out;
 }
 function xmlEscape(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
